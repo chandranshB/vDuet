@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vDuet // Audio Workstation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #e8ecf1;
+            --bg-secondary: #dfe4ea;
+            --shadow-light: #ffffff;
+            --shadow-dark: #bcc3cc;
+            --accent: #6366f1;
+            --accent-light: #818cf8;
+            --accent-dark: #4f46e5;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e8ecf1 0%, #f5f7fa 100%);
+            color: var(--text-primary);
+            font-family: 'Poppins', sans-serif;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+        }
+
+        /* NEUMORPHIC STYLES */
+        .neu-card {
+            background: var(--bg-primary);
+            border-radius: 24px;
+            box-shadow: 
+                12px 12px 24px var(--shadow-dark),
+                -12px -12px 24px var(--shadow-light);
+            padding: 20px;
+        }
+
+        .neu-inset {
+            background: var(--bg-primary);
+            border-radius: 16px;
+            box-shadow: 
+                inset 6px 6px 12px var(--shadow-dark),
+                inset -6px -6px 12px var(--shadow-light);
+            padding: 16px;
+        }
+
+        .neu-btn {
+            background: var(--bg-primary);
+            border: none;
+            border-radius: 12px;
+            box-shadow: 
+                6px 6px 12px var(--shadow-dark),
+                -6px -6px 12px var(--shadow-light);
+            padding: 12px 24px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .neu-btn:hover {
+            box-shadow: 
+                8px 8px 16px var(--shadow-dark),
+                -8px -8px 16px var(--shadow-light);
+        }
+
+        .neu-btn:active, .neu-btn.active {
+            box-shadow: 
+                inset 4px 4px 8px var(--shadow-dark),
+                inset -4px -4px 8px var(--shadow-light);
+        }
+
+        .neu-btn.active::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--accent-light), var(--accent));
+            opacity: 0.15;
+            border-radius: 12px;
+        }
+
+        .neu-btn.active {
+            color: var(--accent);
+        }
+
+        /* SLIDERS */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+            width: 100%;
+            cursor: pointer;
+            height: 40px;
+        }
+
+        input[type=range]:focus {
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            box-shadow: 
+                inset 3px 3px 6px var(--shadow-dark),
+                inset -3px -3px 6px var(--shadow-light);
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-light), var(--accent));
+            margin-top: -8px;
+            box-shadow: 
+                4px 4px 8px rgba(0,0,0,0.15),
+                -2px -2px 6px rgba(255,255,255,0.7),
+                inset -2px -2px 4px rgba(0,0,0,0.2),
+                inset 2px 2px 4px rgba(255,255,255,0.5);
+            transition: all 0.2s ease;
+            cursor: grab;
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            box-shadow: 
+                6px 6px 12px rgba(0,0,0,0.2),
+                -3px -3px 8px rgba(255,255,255,0.8),
+                inset -2px -2px 4px rgba(0,0,0,0.2),
+                inset 2px 2px 4px rgba(255,255,255,0.5);
+        }
+
+        input[type=range]::-webkit-slider-thumb:active {
+            cursor: grabbing;
+            transform: scale(1.05);
+        }
+
+        /* TYPOGRAPHY */
+        .label-primary {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .value-display {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .section-title {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 12px;
+            padding-left: 4px;
+        }
+
+        /* KEYBOARD */
+        .key {
+            position: absolute;
+            border-radius: 0 0 8px 8px;
+            cursor: pointer;
+            transition: all 0.1s ease;
+        }
+
+        .white-key {
+            background: linear-gradient(180deg, #f8fafc 0%, #e8ecf1 100%);
+            height: 100%;
+            z-index: 1;
+            box-shadow: 
+                4px 4px 8px var(--shadow-dark),
+                -2px -2px 6px var(--shadow-light),
+                inset 0 -2px 4px rgba(0,0,0,0.05);
+            border: 1px solid var(--shadow-dark);
+        }
+
+        .white-key:hover {
+            background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+        }
+
+        .white-key.active {
+            background: linear-gradient(180deg, var(--accent-light), var(--accent));
+            transform: scaleY(0.98);
+            box-shadow: 
+                inset 3px 3px 8px rgba(0,0,0,0.3),
+                inset -2px -2px 6px rgba(255,255,255,0.2),
+                0 0 20px rgba(99, 102, 241, 0.6);
+        }
+
+        .black-key {
+            background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
+            height: 60%;
+            z-index: 10;
+            border-radius: 0 0 6px 6px;
+            box-shadow: 
+                3px 3px 8px rgba(0,0,0,0.4),
+                inset 0 2px 2px rgba(255,255,255,0.1);
+            border: 1px solid #0f172a;
+        }
+
+        .black-key:hover {
+            background: linear-gradient(180deg, #475569 0%, #334155 100%);
+        }
+
+        .black-key.active {
+            background: linear-gradient(180deg, var(--accent-dark), var(--accent));
+            transform: scaleY(0.96);
+            box-shadow: 
+                inset 2px 2px 6px rgba(0,0,0,0.5),
+                0 0 15px rgba(99, 102, 241, 0.8);
+        }
+
+        /* VISUALIZER */
+        canvas {
+            border-radius: 12px;
+        }
+
+        /* SCROLLBAR */
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+            border-radius: 8px;
+            box-shadow: 
+                inset 2px 2px 4px var(--shadow-dark),
+                inset -2px -2px 4px var(--shadow-light);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--accent-light), var(--accent));
+            border-radius: 8px;
+            box-shadow: 
+                2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* INIT MODAL */
+        #init-modal {
+            backdrop-filter: blur(20px);
+            background: rgba(232, 236, 241, 0.95);
+        }
+
+        .init-card {
+            background: var(--bg-primary);
+            border-radius: 32px;
+            box-shadow: 
+                20px 20px 60px var(--shadow-dark),
+                -20px -20px 60px var(--shadow-light);
+            padding: 48px;
+        }
+
+        .power-button {
+            background: linear-gradient(135deg, var(--accent-light), var(--accent));
+            border: none;
+            border-radius: 16px;
+            box-shadow: 
+                8px 8px 16px var(--shadow-dark),
+                -4px -4px 12px var(--shadow-light),
+                inset -2px -2px 4px rgba(0,0,0,0.2),
+                inset 2px 2px 4px rgba(255,255,255,0.3);
+            padding: 20px;
+            color: white;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            letter-spacing: 0.1em;
+        }
+
+        .power-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                12px 12px 24px var(--shadow-dark),
+                -6px -6px 16px var(--shadow-light),
+                inset -2px -2px 4px rgba(0,0,0,0.2),
+                inset 2px 2px 4px rgba(255,255,255,0.3),
+                0 0 30px rgba(99, 102, 241, 0.4);
+        }
+
+        .power-button:active {
+            transform: translateY(0);
+            box-shadow: 
+                inset 4px 4px 8px rgba(0,0,0,0.3),
+                inset -4px -4px 8px rgba(255,255,255,0.2);
+        }
+
+        /* ANIMATIONS */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        /* CONTROL GROUP */
+        .control-section {
+            background: var(--bg-primary);
+            border-radius: 20px;
+            box-shadow: 
+                8px 8px 16px var(--shadow-dark),
+                -8px -8px 16px var(--shadow-light);
+            padding: 20px;
+            position: relative;
+        }
+
+        .control-header {
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: var(--bg-primary);
+            padding: 4px 12px;
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: 0.15em;
+            border-radius: 8px;
+            box-shadow: 
+                4px 4px 8px var(--shadow-dark),
+                -4px -4px 8px var(--shadow-light);
+        }
+
+        /* GLASS INSET VARIANT */
+        .visual-inset {
+            background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
+            border-radius: 16px;
+            box-shadow: 
+                inset 4px 4px 8px rgba(0,0,0,0.1),
+                inset -4px -4px 8px rgba(255,255,255,0.5);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .visual-inset::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent, rgba(99, 102, 241, 0.05));
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+<!-- INITIALIZATION MODAL -->
+<div id="init-modal" class="fixed inset-0 z-50 flex items-center justify-center transition-all duration-700">
+    <div class="init-card text-center max-w-md w-full">
+        <div class="mb-8">
+            <h1 class="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-600 tracking-tight">
+                vDuet<span class="font-light">PRO</span>
+            </h1>
+            <div class="h-1 w-32 mx-auto mt-4 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600"></div>
+        </div>
+        <p class="text-xs font-mono text-slate-400 tracking-[0.3em] mb-10 uppercase">Advanced Audio Workstation</p>
+        <button id="power-btn" class="power-button">
+            <i class="fas fa-power-off mr-3"></i>Initialize Engine
+        </button>
+        <div id="loading-text" class="mt-6 text-xs font-mono text-slate-400 h-4 opacity-0 transition-opacity">
+            Loading DSP modules...
+        </div>
+    </div>
+</div>
+
+<!-- MAIN INTERFACE -->
+<div class="neu-card w-[1300px] h-[820px] flex flex-col overflow-hidden">
+    
+    <!-- HEADER -->
+    <div class="h-20 flex items-center justify-between px-8 mb-4">
+        <div class="flex items-center gap-4">
+            <div class="neu-inset w-12 h-12 flex items-center justify-center p-0">
+                <i class="fas fa-wave-square text-indigo-500 text-xl"></i>
+            </div>
+            <div>
+                <div class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-600 leading-none tracking-tight">
+                    vDuet<span class="font-light text-slate-400">PRO</span>
+                </div>
+                <div class="text-xs text-slate-400 font-mono">v4.2.0</div>
+            </div>
+        </div>
+
+        <!-- PRESETS -->
+        <div class="flex gap-2">
+            <button class="neu-btn active" data-preset="init">INIT</button>
+            <button class="neu-btn" data-preset="bass">DEEP BASS</button>
+            <button class="neu-btn" data-preset="pad">ETHEREAL</button>
+            <button class="neu-btn" data-preset="pluck">PLUCK</button>
+        </div>
+
+        <!-- MASTER VOLUME -->
+        <div class="flex items-center gap-4">
+            <div class="neu-inset flex items-center gap-3 px-4 py-2">
+                <i class="fas fa-volume-up text-indigo-500"></i>
+                <div class="text-right">
+                    <div class="text-[9px] text-slate-400 uppercase tracking-wider">Master</div>
+                    <div id="master-val" class="text-xs font-mono text-indigo-500 font-semibold">0.0 dB</div>
+                </div>
+                <input type="range" id="master-vol" min="0" max="1" step="0.01" value="0.8" class="w-24">
+            </div>
+        </div>
+    </div>
+
+    <!-- WORKSPACE -->
+    <div class="flex-1 px-8 pb-4 grid grid-cols-12 gap-6 overflow-hidden">
+        
+        <!-- LEFT COLUMN: OSCILLATOR & FILTER (5) -->
+        <div class="col-span-5 flex flex-col gap-6">
+            
+            <!-- OSCILLATOR -->
+            <div class="control-section flex-1 flex flex-col">
+                <div class="control-header">OSCILLATOR CORE</div>
+                
+                <!-- Visualizer -->
+                <div class="visual-inset h-36 w-full mb-6 relative cursor-pointer" id="scope-container">
+                    <canvas id="osc-scope" class="w-full h-full"></canvas>
+                    <div class="absolute top-3 right-3">
+                        <div class="neu-btn text-[9px] px-3 py-1" id="vis-mode-text">WAVE</div>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="space-y-5">
+                    <!-- Morph & Unison -->
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <div class="label-primary">
+                                <span>Wavetable</span>
+                                <span id="wt-pos-val" class="value-display">SAW</span>
+                            </div>
+                            <input type="range" id="wt-pos" min="0" max="4" step="0.01" value="2">
+                            <div class="flex justify-between text-[9px] text-slate-400 font-mono mt-2 px-1">
+                                <span>SIN</span><span>TRI</span><span>SAW</span><span>SQR</span><span>PLS</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="label-primary">
+                                <span>Unison</span>
+                                <span id="unison-val" class="value-display">1</span>
+                            </div>
+                            <input type="range" id="unison" min="1" max="7" step="1" value="1">
+                            <div class="label-primary mt-4">
+                                <span>Detune</span>
+                                <span id="detune-val" class="value-display">20%</span>
+                            </div>
+                            <input type="range" id="detune" min="0" max="100" value="20">
+                        </div>
+                    </div>
+
+                    <!-- Tuning -->
+                    <div class="neu-inset p-4 flex gap-4 items-center">
+                        <div class="text-[10px] font-bold text-slate-400 w-16 uppercase">Pitch</div>
+                        <div class="flex-1">
+                            <div class="label-primary mb-2">
+                                <span>Octave</span>
+                                <span id="oct-val-disp" class="value-display">0</span>
+                            </div>
+                            <input type="range" id="octave" min="-3" max="3" step="1" value="0">
+                        </div>
+                        <div class="flex-1">
+                            <div class="label-primary mb-2">
+                                <span>Semi</span>
+                                <span id="semi-val" class="value-display">0</span>
+                            </div>
+                            <input type="range" id="semitone" min="-12" max="12" step="1" value="0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FILTER -->
+            <div class="control-section h-52">
+                <div class="control-header">VCF FILTER</div>
+                <div class="flex h-full gap-6 items-center mt-4">
+                    <!-- Type Select -->
+                    <div class="flex flex-col gap-3">
+                        <button class="neu-btn py-2 px-4 text-[10px] active" onclick="setFilter('lowpass', this)">
+                            LP 24
+                        </button>
+                        <button class="neu-btn py-2 px-4 text-[10px]" onclick="setFilter('highpass', this)">
+                            HP 24
+                        </button>
+                        <button class="neu-btn py-2 px-4 text-[10px]" onclick="setFilter('bandpass', this)">
+                            BP 12
+                        </button>
+                    </div>
+
+                    <!-- Parameters -->
+                    <div class="flex-1 space-y-5">
+                        <div>
+                            <div class="label-primary">
+                                <span>Cutoff</span>
+                                <span id="cutoff-val" class="value-display">20kHz</span>
+                            </div>
+                            <input type="range" id="cutoff" min="20" max="20000" value="20000" step="1">
+                        </div>
+                        <div>
+                            <div class="label-primary">
+                                <span>Resonance</span>
+                                <span id="res-val" class="value-display">0%</span>
+                            </div>
+                            <input type="range" id="resonance" min="0" max="20" value="0" step="0.1">
+                        </div>
+                        <div>
+                            <div class="label-primary">
+                                <span>Drive</span>
+                                <span id="drive-val" class="value-display">0%</span>
+                            </div>
+                            <input type="range" id="drive" min="0" max="100" value="0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CENTER COLUMN: ENVELOPE & LFO (4) -->
+        <div class="col-span-4 flex flex-col gap-6">
+            
+            <!-- MSEG ENVELOPE -->
+            <div class="control-section flex-1 flex flex-col">
+                <div class="control-header">MSEG ENVELOPE</div>
+                
+                <!-- Interactive Graph -->
+                <div class="visual-inset w-full h-52 mb-4 relative cursor-crosshair">
+                    <canvas id="env-graph" class="w-full h-full"></canvas>
+                    <div class="absolute inset-0 pointer-events-none opacity-20" 
+                         style="background-image: linear-gradient(rgba(99,102,241,0.1) 1px, transparent 1px), 
+                                linear-gradient(90deg, rgba(99,102,241,0.1) 1px, transparent 1px); 
+                                background-size: 20px 20px;">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-4 gap-3 text-center">
+                    <div class="neu-inset py-2">
+                        <div class="text-[9px] text-slate-400 mb-1 uppercase tracking-wider">Attack</div>
+                        <span id="atk-val" class="value-display text-sm">10ms</span>
+                    </div>
+                    <div class="neu-inset py-2">
+                        <div class="text-[9px] text-slate-400 mb-1 uppercase tracking-wider">Decay</div>
+                        <span id="dec-val" class="value-display text-sm">200ms</span>
+                    </div>
+                    <div class="neu-inset py-2">
+                        <div class="text-[9px] text-slate-400 mb-1 uppercase tracking-wider">Sustain</div>
+                        <span id="sus-val" class="value-display text-sm">70%</span>
+                    </div>
+                    <div class="neu-inset py-2">
+                        <div class="text-[9px] text-slate-400 mb-1 uppercase tracking-wider">Release</div>
+                        <span id="rel-val" class="value-display text-sm">500ms</span>
+                    </div>
+                </div>
+                <div class="text-[10px] text-slate-400 text-center mt-3 flex items-center justify-center gap-2">
+                    <i class="fas fa-hand-pointer"></i>
+                    <span>Drag points to shape envelope</span>
+                </div>
+            </div>
+
+            <!-- LFO -->
+            <div class="control-section h-52">
+                <div class="control-header text-purple-500">LFO MODULATOR</div>
+                <div class="visual-inset h-20 w-full mb-4 mt-4">
+                    <canvas id="lfo-vis" class="w-full h-full"></canvas>
+                </div>
+                <div class="flex gap-4">
+                    <div class="flex-1">
+                        <div class="label-primary">
+                            <span>Rate</span>
+                            <span id="lfo-rate-val" class="value-display">4 Hz</span>
+                        </div>
+                        <input type="range" id="lfo-rate" min="0.1" max="20" step="0.1" value="4">
+                    </div>
+                    <div class="flex-1">
+                        <div class="label-primary">
+                            <span>Depth</span>
+                            <span id="lfo-depth-val" class="value-display">0%</span>
+                        </div>
+                        <input type="range" id="lfo-depth" min="0" max="100" value="0">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: FX RACK (3) -->
+        <div class="col-span-3 flex flex-col gap-4">
+            <div class="section-title">Effects Processor</div>
+
+            <!-- CHORUS -->
+            <div class="control-section flex-1">
+                <div class="control-header text-purple-500">DIMENSION</div>
+                <div class="h-full flex flex-col justify-center mt-4">
+                    <div class="label-primary">
+                        <span>Mix</span>
+                        <span id="chorus-mix-val" class="value-display">0%</span>
+                    </div>
+                    <input type="range" id="chorus-mix" min="0" max="100" value="0">
+                </div>
+            </div>
+
+            <!-- DELAY -->
+            <div class="control-section flex-1">
+                <div class="control-header text-blue-500">STEREO DELAY</div>
+                <div class="space-y-4 mt-4">
+                    <div>
+                        <div class="label-primary">
+                            <span>Feedback</span>
+                        </div>
+                        <input type="range" id="delay-feed" min="0" max="0.9" step="0.01" value="0.3">
+                    </div>
+                    <div>
+                        <div class="label-primary">
+                            <span>Mix</span>
+                            <span id="delay-mix-val" class="value-display">0%</span>
+                        </div>
+                        <input type="range" id="delay-mix" min="0" max="1" step="0.01" value="0">
+                    </div>
+                </div>
+            </div>
+
+            <!-- REVERB -->
+            <div class="control-section flex-[1.5]">
+                <div class="control-header text-indigo-500">ALGO REVERB</div>
+                <div class="space-y-4 mt-4">
+                    <div>
+                        <div class="label-primary">
+                            <span>Decay Time</span>
+                            <span id="verb-decay-val" class="value-display">2.0s</span>
+                        </div>
+                        <input type="range" id="verb-decay" min="0.1" max="10" step="0.1" value="2.0">
+                    </div>
+                    <div>
+                        <div class="label-primary">
+                            <span>Tone (Damp)</span>
+                            <span id="verb-tone-val" class="value-display">5kHz</span>
+                        </div>
+                        <input type="range" id="verb-tone" min="1000" max="15000" step="100" value="5000">
+                    </div>
+                    <div>
+                        <div class="label-primary">
+                            <span>Mix</span>
+                            <span id="verb-mix-val" class="value-display">10%</span>
+                        </div>
+                        <input type="range" id="verb-mix" min="0" max="1" step="0.01" value="0.1">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KEYBOARD FOOTER -->
+    <div class="h-40 neu-inset mx-8 mb-4 relative overflow-hidden">
+        <div id="keyboard-container" class="w-full h-full overflow-x-auto relative custom-scrollbar">
+            <div id="keyboard" class="h-full relative min-w-max mx-auto"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+/* --- vDuet PRO AUDIO ENGINE --- */
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let ctx = null;
+let masterGain, limiter, analyser;
+let delayNode, delayFeedback, delayWet;
+let reverbNode, reverbWet, reverbTone;
+let chorusNode, chorusLFO, chorusWet;
+let visMode = 'wave';
+
+// STATE
+const state = {
+    wtPos: 2,
+    unison: 1,
+    detune: 20,
+    octave: 0,
+    semitone: 0,
+    filter: { type: 'lowpass', freq: 20000, q: 0, drive: 0 },
+    env: { a: 0.01, d: 0.2, s: 0.7, r: 0.5 },
+    lfo: { rate: 4, depth: 0 },
+    fx: {
+        delay: { feed: 0.3, mix: 0 },
+        reverb: { decay: 2.0, tone: 5000, mix: 0.1 },
+        chorus: 0
+    },
+    vol: 0.8
+};
+
+const activeVoices = new Map();
+
+// --- INIT ---
+document.getElementById('power-btn').addEventListener('click', async () => {
+    document.getElementById('loading-text').style.opacity = 1;
+    try {
+        ctx = new AudioContext({ latencyHint: 'interactive' });
+        await initFX();
+        document.getElementById('init-modal').style.opacity = 0;
+        setTimeout(() => document.getElementById('init-modal').remove(), 600);
+        createKeyboard();
+        centerKeyboard();
+        setupUI();
+        initEnvGraph();
+        requestAnimationFrame(drawVisualizer);
+        requestAnimationFrame(drawLFOVis);
+    } catch(e) {
+        alert(e);
+    }
+});
+
+// --- FX CHAIN ---
+async function initFX() {
+    masterGain = ctx.createGain();
+    masterGain.gain.value = state.vol;
+    
+    limiter = ctx.createDynamicsCompressor();
+    limiter.threshold.value = -1.0;
+    limiter.ratio.value = 20.0;
+    
+    analyser = ctx.createAnalyser();
+    analyser.fftSize = 2048;
+
+    // Delay
+    delayNode = ctx.createDelay(5.0);
+    delayNode.delayTime.value = 0.375;
+    delayFeedback = ctx.createGain();
+    delayFeedback.gain.value = state.fx.delay.feed;
+    delayWet = ctx.createGain();
+    delayWet.gain.value = state.fx.delay.mix;
+    
+    delayNode.connect(delayFeedback);
+    delayFeedback.connect(delayNode);
+    delayNode.connect(delayWet);
+    delayWet.connect(masterGain);
+
+    // Reverb
+    reverbNode = ctx.createConvolver();
+    updateReverbIR();
+    reverbTone = ctx.createBiquadFilter();
+    reverbTone.type = 'lowpass';
+    reverbTone.frequency.value = state.fx.reverb.tone;
+    reverbWet = ctx.createGain();
+    reverbWet.gain.value = state.fx.reverb.mix;
+    
+    reverbNode.connect(reverbTone);
+    reverbTone.connect(reverbWet);
+    reverbWet.connect(masterGain);
+
+    // Chorus
+    chorusNode = ctx.createDelay(0.1);
+    chorusNode.delayTime.value = 0.03;
+    chorusLFO = ctx.createOscillator();
+    chorusLFO.frequency.value = 1.5;
+    const cDepth = ctx.createGain();
+    cDepth.gain.value = 0.002;
+    chorusLFO.connect(cDepth);
+    cDepth.connect(chorusNode.delayTime);
+    chorusLFO.start();
+    chorusWet = ctx.createGain();
+    chorusWet.gain.value = state.fx.chorus/100;
+    
+    chorusNode.connect(chorusWet);
+    chorusWet.connect(masterGain);
+
+    masterGain.connect(limiter);
+    limiter.connect(analyser);
+    analyser.connect(ctx.destination);
+}
+
+function updateReverbIR() {
+    const dur = state.fx.reverb.decay;
+    const sr = ctx.sampleRate, len = sr*dur, b = ctx.createBuffer(2, len, sr);
+    for(let c=0; c<2; c++) {
+        const d = b.getChannelData(c);
+        for(let i=0; i<len; i++) d[i] = (Math.random()*2-1) * Math.pow(1-i/len, 2);
+    }
+    reverbNode.buffer = b;
+}
+
+// --- ENVELOPE GRAPH EDITOR ---
+const envCanvas = document.getElementById('env-graph');
+const envCtx = envCanvas.getContext('2d');
+let activePoint = null;
+
+function initEnvGraph() {
+    const resize = () => {
+        envCanvas.width = envCanvas.clientWidth;
+        envCanvas.height = envCanvas.clientHeight;
+        drawEnvGraph();
+    }
+    window.onresize = resize;
+    resize();
+
+    envCanvas.addEventListener('mousedown', e => {
+        const rect = envCanvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const pts = getPoints(envCanvas.width, envCanvas.height);
+        
+        ['a','d','r'].forEach(k => {
+            const p = pts[k];
+            if(Math.hypot(x-p.x, y-p.y) < 10) activePoint = k;
+        });
+    });
+
+    window.addEventListener('mousemove', e => {
+        if(!activePoint) return;
+        const rect = envCanvas.getBoundingClientRect();
+        const x = Math.max(0, Math.min(envCanvas.width, e.clientX - rect.left));
+        const y = Math.max(0, Math.min(envCanvas.height, e.clientY - rect.top));
+        
+        const timeScale = 3.0;
+        
+        if(activePoint === 'a') {
+            state.env.a = (x / envCanvas.width) * timeScale;
+            if(state.env.a < 0.005) state.env.a = 0.005;
+        } else if(activePoint === 'd') {
+            const aPx = (state.env.a / timeScale) * envCanvas.width;
+            let d = ((x - aPx) / envCanvas.width) * timeScale;
+            if(d < 0.005) d = 0.005;
+            state.env.d = d;
+            state.env.s = 1 - (y / envCanvas.height);
+            if(state.env.s < 0) state.env.s = 0;
+            if(state.env.s > 1) state.env.s = 1;
+        } else if(activePoint === 'r') {
+            const dEndPx = ((state.env.a + state.env.d + 0.5) / timeScale) * envCanvas.width;
+            let r = ((x - dEndPx) / envCanvas.width) * timeScale;
+            if(r < 0.01) r = 0.01;
+            state.env.r = r;
+        }
+        
+        updateUIFromState();
+        drawEnvGraph();
+    });
+
+    window.addEventListener('mouseup', () => activePoint = null);
+}
+
+function getPoints(w, h) {
+    const timeScale = 3.0;
+    const aX = (state.env.a / timeScale) * w;
+    const dX = ((state.env.a + state.env.d) / timeScale) * w;
+    const sY = (1 - state.env.s) * h;
+    const holdX = ((state.env.a + state.env.d + 0.5) / timeScale) * w;
+    const rX = ((state.env.a + state.env.d + 0.5 + state.env.r) / timeScale) * w;
+    
+    return {
+        start: {x:0, y:h},
+        a: {x:aX, y:0},
+        d: {x:dX, y:sY},
+        hold: {x:holdX, y:sY},
+        r: {x:rX, y:h}
+    };
+}
+
+function drawEnvGraph() {
+    const w = envCanvas.width, h = envCanvas.height;
+    const p = getPoints(w, h);
+    
+    envCtx.clearRect(0,0,w,h);
+    
+    // Fill
+    const gradient = envCtx.createLinearGradient(0, 0, 0, h);
+    gradient.addColorStop(0, 'rgba(99, 102, 241, 0.3)');
+    gradient.addColorStop(1, 'rgba(99, 102, 241, 0.05)');
+    
+    envCtx.fillStyle = gradient;
+    envCtx.beginPath();
+    envCtx.moveTo(p.start.x, p.start.y);
+    envCtx.lineTo(p.a.x, p.a.y);
+    envCtx.lineTo(p.d.x, p.d.y);
+    envCtx.lineTo(p.hold.x, p.hold.y);
+    envCtx.lineTo(p.r.x, p.r.y);
+    envCtx.lineTo(w, h);
+    envCtx.closePath();
+    envCtx.fill();
+    
+    // Line
+    envCtx.strokeStyle = '#6366f1';
+    envCtx.lineWidth = 3;
+    envCtx.lineJoin = 'round';
+    envCtx.beginPath();
+    envCtx.moveTo(p.start.x, p.start.y);
+    envCtx.lineTo(p.a.x, p.a.y);
+    envCtx.lineTo(p.d.x, p.d.y);
+    envCtx.lineTo(p.hold.x, p.hold.y);
+    envCtx.lineTo(p.r.x, p.r.y);
+    envCtx.stroke();
+    
+    // Points
+    const drawPt = (pt) => {
+        envCtx.fillStyle = '#6366f1';
+        envCtx.shadowColor = 'rgba(99, 102, 241, 0.5)';
+        envCtx.shadowBlur = 10;
+        envCtx.beginPath();
+        envCtx.arc(pt.x, pt.y, 6, 0, Math.PI*2);
+        envCtx.fill();
+        envCtx.shadowBlur = 0;
+        
+        envCtx.fillStyle = '#fff';
+        envCtx.beginPath();
+        envCtx.arc(pt.x, pt.y, 3, 0, Math.PI*2);
+        envCtx.fill();
+    };
+    
+    drawPt(p.a);
+    drawPt(p.d);
+    drawPt(p.r);
+}
+
+function updateUIFromState() {
+    document.getElementById('atk-val').innerText = (state.env.a*1000).toFixed(0) + 'ms';
+    document.getElementById('dec-val').innerText = (state.env.d*1000).toFixed(0) + 'ms';
+    document.getElementById('sus-val').innerText = (state.env.s*100).toFixed(0) + '%';
+    document.getElementById('rel-val').innerText = (state.env.r*1000).toFixed(0) + 'ms';
+}
+
+// --- VOICE ENGINE ---
+function createWavetable(pos) {
+    const n=4096, real=new Float32Array(n), imag=new Float32Array(n);
+    for(let i=1; i<n; i++) {
+        const sine = (i===1)?1:0;
+        const saw = 2/(Math.PI*i);
+        const sqr = (i%2!==0)?4/(Math.PI*i):0;
+        let amp=0;
+        
+        if(pos<=1) amp = sine*(1-pos) + saw*pos*0.5;
+        else if(pos<=2) amp = saw*(2-pos) + sqr*(pos-1);
+        else amp = sqr*(3-pos) + sine*(pos-2);
+        
+        imag[i] = amp;
+    }
+    return ctx.createPeriodicWave(real, imag);
+}
+
+function triggerAttack(note) {
+    if(!ctx) return;
+    if(ctx.state==='suspended') ctx.resume();
+    if(activeVoices.has(note)) killVoice(note, true);
+
+    const t = ctx.currentTime;
+    const freq = 440 * Math.pow(2, (note + state.semitone - 69 + (state.octave*12))/12);
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = state.filter.type;
+    filter.frequency.value = state.filter.freq;
+    filter.Q.value = state.filter.q;
+
+    const vca = ctx.createGain();
+    vca.gain.setValueAtTime(0, t);
+    vca.gain.linearRampToValueAtTime(1.0, t + state.env.a);
+    vca.gain.exponentialRampToValueAtTime(Math.max(0.01, state.env.s), t + state.env.a + state.env.d);
+
+    const count = state.unison, oscs = [], wave = createWavetable(state.wtPos);
+    
+    for(let i=0; i<count; i++) {
+        const osc = ctx.createOscillator();
+        osc.setPeriodicWave(wave);
+        const spread = (count>1) ? ((i/(count-1))*2-1)*state.detune : 0;
+        osc.frequency.value = freq;
+        osc.detune.value = spread;
+        const g = ctx.createGain();
+        g.gain.value = 1/Math.sqrt(count);
+        osc.connect(g);
+        g.connect(filter);
+        osc.start(t);
+        oscs.push(osc);
+    }
+
+    const lfo = ctx.createOscillator();
+    lfo.frequency.value = state.lfo.rate;
+    const lfoD = ctx.createGain();
+    lfoD.gain.value = (state.lfo.depth/100)*2000;
+    lfo.connect(lfoD);
+    lfoD.connect(filter.frequency);
+    lfo.start(t);
+
+    filter.connect(vca);
+    vca.connect(masterGain);
+
+    const sD = ctx.createGain();
+    sD.gain.value = 1;
+    vca.connect(sD);
+    sD.connect(delayNode);
+
+    const sR = ctx.createGain();
+    sR.gain.value = 1;
+    vca.connect(sR);
+    sR.connect(reverbNode);
+
+    const sC = ctx.createGain();
+    sC.gain.value = 1;
+    vca.connect(sC);
+    sC.connect(chorusNode);
+
+    activeVoices.set(note, {oscs, vca, lfo});
+    highlightKey(note, true);
+}
+
+function killVoice(note, immediate=false) {
+    if(!activeVoices.has(note)) return;
+    const v = activeVoices.get(note);
+    const t = ctx.currentTime;
+
+    if(immediate) {
+        v.oscs.forEach(o=>o.stop());
+        v.lfo.stop();
+        v.vca.disconnect();
+        activeVoices.delete(note);
+    } else {
+        v.vca.gain.cancelScheduledValues(t);
+        v.vca.gain.setValueAtTime(v.vca.gain.value, t);
+        v.vca.gain.exponentialRampToValueAtTime(0.0001, t + state.env.r);
+        v.oscs.forEach(o=>o.stop(t+state.env.r+0.1));
+        v.lfo.stop(t+state.env.r+0.1);
+        setTimeout(()=>{
+            if(activeVoices.get(note)===v) activeVoices.delete(note);
+        }, (state.env.r+0.2)*1000);
+    }
+    highlightKey(note, false);
+}
+
+// --- UI LOGIC ---
+function setupUI() {
+    const bind = (id, key, disp, suffix='', formatter=null) => {
+        document.getElementById(id).addEventListener('input', e => {
+            const v = parseFloat(e.target.value);
+            const path = key.split('.');
+            if(path.length===1) state[path[0]] = v;
+            else if(path.length===2) state[path[0]][path[1]] = v;
+            
+            if(disp) {
+                const displayVal = formatter ? formatter(v) : v + suffix;
+                document.getElementById(disp).innerText = displayVal;
+            }
+            updateDSP(id, v);
+        });
+    };
+
+    const formatWTPos = (v) => {
+        const names = ['SIN', 'TRI', 'SAW', 'SQR', 'PLS'];
+        const idx = Math.min(4, Math.max(0, Math.round(v)));
+        return names[idx];
+    };
+
+    const formatFreq = (v) => {
+        if(v >= 1000) return (v/1000).toFixed(1) + 'kHz';
+        return Math.round(v) + 'Hz';
+    };
+
+    bind('wt-pos', 'wtPos', 'wt-pos-val', '', formatWTPos);
+    bind('unison', 'unison', 'unison-val');
+    bind('detune', 'detune', 'detune-val', '%');
+    bind('octave', 'octave', 'oct-val-disp');
+    bind('semitone', 'semitone', 'semi-val');
+    bind('cutoff', 'filter.freq', 'cutoff-val', '', formatFreq);
+    bind('resonance', 'filter.q', 'res-val', '%');
+    bind('drive', 'filter.drive', 'drive-val', '%');
+    bind('lfo-rate', 'lfo.rate', 'lfo-rate-val', ' Hz');
+    bind('lfo-depth', 'lfo.depth', 'lfo-depth-val', '%');
+    bind('delay-feed', 'fx.delay.feed');
+    bind('delay-mix', 'fx.delay.mix', 'delay-mix-val', '%', v => Math.round(v*100) + '%');
+    bind('verb-decay', 'fx.reverb.decay', 'verb-decay-val', 's');
+    bind('verb-tone', 'fx.reverb.tone', 'verb-tone-val', '', formatFreq);
+    bind('verb-mix', 'fx.reverb.mix', 'verb-mix-val', '%', v => Math.round(v*100) + '%');
+    bind('chorus-mix', 'fx.chorus', 'chorus-mix-val', '%');
+    bind('master-vol', 'vol', 'master-val', ' dB', v => (20 * Math.log10(v)).toFixed(1) + ' dB');
+
+    // Filter Type
+    window.setFilter = (type, btn) => {
+        state.filter.type = type;
+        document.querySelectorAll('[onclick^="setFilter"]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    // Presets
+    const presets = {
+        init: { wtPos:2, unison:1, detune:0, filter:{freq:20000,q:0}, env:{a:0.01,d:0.1,s:1,r:0.1}, fx:{reverb:{mix:0}} },
+        bass: { wtPos:3, unison:3, detune:15, octave:-2, filter:{freq:600,q:1}, env:{a:0.01,d:0.2,s:0.4,r:0.3}, fx:{reverb:{mix:0.1}} },
+        pad: { wtPos:1, unison:5, detune:30, octave:0, filter:{freq:3000,q:0}, env:{a:1.0,d:1.0,s:0.8,r:1.5}, fx:{reverb:{mix:0.5}} },
+        pluck: { wtPos:2, unison:1, detune:0, octave:0, filter:{freq:20000,q:0}, env:{a:0.01,d:0.2,s:0,r:0.2}, fx:{reverb:{mix:0.3}} }
+    };
+
+    document.querySelectorAll('.neu-btn[data-preset]').forEach(b => {
+        b.addEventListener('click', () => {
+            document.querySelectorAll('.neu-btn[data-preset]').forEach(x=>x.classList.remove('active'));
+            b.classList.add('active');
+            const p = presets[b.dataset.preset];
+            if(p) {
+                Object.assign(state.env, p.env);
+                if(p.filter) Object.assign(state.filter, p.filter);
+                state.wtPos = p.wtPos;
+                state.unison = p.unison;
+                state.octave = p.octave || 0;
+                updateUIFromState();
+                drawEnvGraph();
+                document.getElementById('wt-pos').value = state.wtPos;
+                document.getElementById('cutoff').value = state.filter.freq;
+            }
+        });
+    });
+
+    // Visualizer Toggle
+    document.getElementById('scope-container').addEventListener('click', () => {
+        visMode = (visMode==='wave')?'fft':'wave';
+        document.getElementById('vis-mode-text').innerText = visMode==='wave'?'WAVE':'FFT';
+    });
+}
+
+function updateDSP(id, v) {
+    const t = ctx.currentTime;
+    if(id === 'delay-feed') delayFeedback.gain.setTargetAtTime(v, t, 0.1);
+    if(id === 'delay-mix') delayWet.gain.setTargetAtTime(v, t, 0.1);
+    if(id === 'verb-mix') reverbWet.gain.setTargetAtTime(v, t, 0.1);
+    if(id === 'verb-tone') reverbTone.frequency.setTargetAtTime(v, t, 0.1);
+    if(id === 'verb-decay') updateReverbIR();
+    if(id === 'chorus-mix') chorusWet.gain.setTargetAtTime(v/100, t, 0.1);
+    if(id === 'master-vol') masterGain.gain.setTargetAtTime(v, t, 0.1);
+}
+
+// --- VISUALIZERS ---
+function drawVisualizer() {
+    requestAnimationFrame(drawVisualizer);
+    if(!analyser) return;
+
+    const cvs = document.getElementById('osc-scope');
+    const c = cvs.getContext('2d');
+    const w = cvs.width = cvs.clientWidth;
+    const h = cvs.height = cvs.clientHeight;
+
+    c.clearRect(0,0,w,h);
+
+    if(visMode === 'wave') {
+        const data = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteTimeDomainData(data);
+        
+        const gradient = c.createLinearGradient(0, 0, w, 0);
+        gradient.addColorStop(0, '#6366f1');
+        gradient.addColorStop(0.5, '#818cf8');
+        gradient.addColorStop(1, '#a5b4fc');
+        
+        c.strokeStyle = gradient;
+        c.lineWidth = 3;
+        c.lineJoin = 'round';
+        c.beginPath();
+        
+        const slice = w / data.length;
+        let x=0;
+        for(let i=0; i<data.length; i+=3) {
+            const v = data[i]/128.0;
+            const y = v * h/2;
+            i===0 ? c.moveTo(x,y) : c.lineTo(x,y);
+            x+=slice*3;
+        }
+        c.stroke();
+    } else {
+        const data = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(data);
+        const barW = (w / data.length) * 2.5;
+        let x=0;
+        
+        for(let i=0; i<data.length; i++) {
+            const barH = (data[i]/255)*h;
+            const gradient = c.createLinearGradient(0, h-barH, 0, h);
+            gradient.addColorStop(0, '#6366f1');
+            gradient.addColorStop(1, '#818cf8');
+            c.fillStyle = gradient;
+            c.fillRect(x, h-barH, barW-1, barH);
+            x += barW;
+            if(x>w) break;
+        }
+    }
+}
+
+function drawLFOVis() {
+    requestAnimationFrame(drawLFOVis);
+    const cvs = document.getElementById('lfo-vis');
+    const c = cvs.getContext('2d');
+    const w = cvs.width = cvs.clientWidth;
+    const h = cvs.height = cvs.clientHeight;
+
+    c.clearRect(0,0,w,h);
+    
+    // Grid
+    c.strokeStyle = 'rgba(148, 163, 184, 0.2)';
+    c.lineWidth = 1;
+    c.beginPath();
+    c.moveTo(0, h/2);
+    c.lineTo(w, h/2);
+    c.stroke();
+
+    // LFO Wave
+    const gradient = c.createLinearGradient(0, 0, w, 0);
+    gradient.addColorStop(0, '#a855f7');
+    gradient.addColorStop(1, '#c084fc');
+    
+    c.strokeStyle = gradient;
+    c.lineWidth = 2;
+    c.beginPath();
+    for(let x=0; x<w; x++) {
+        const ph = (x/w)*2;
+        const y = (ph<1 ? ph : 2-ph);
+        c.lineTo(x, h-(y*h*0.8)-h*0.1);
+    }
+    c.stroke();
+
+    // Current Position
+    const t = (Date.now()/1000)*state.lfo.rate;
+    const ph = t%1;
+    const bx = ph*w;
+    const p2 = ph*2;
+    const by = (p2<1 ? p2 : 2-p2);
+    
+    c.fillStyle = '#a855f7';
+    c.shadowColor = 'rgba(168, 85, 247, 0.6)';
+    c.shadowBlur = 10;
+    c.beginPath();
+    c.arc(bx, h-(by*h*0.8)-h*0.1, 5, 0, Math.PI*2);
+    c.fill();
+    c.shadowBlur = 0;
+}
+
+// --- KEYBOARD ---
+const keyMap = {
+    'z':0,'s':1,'x':2,'d':3,'c':4,'v':5,'g':6,'b':7,'h':8,'n':9,'j':10,'m':11,
+    ',':12,'l':13,'.':14,';':15,'/':16,
+    'q':12,'2':13,'w':14,'3':15,'e':16,'r':17,'5':18,'t':19,'6':20,'y':21,'7':22,'u':23,
+    'i':24,'9':25,'o':26,'0':27,'p':28,'[':29,'=':30,']':31
+};
+const BASE_NOTE=48;
+const TOTAL_KEYS=60;
+
+function createKeyboard() {
+    const el = document.getElementById('keyboard');
+    el.innerHTML='';
+    const kw = 42;
+    el.style.width = `${Math.ceil(TOTAL_KEYS*(7/12))*kw}px`;
+    
+    let wIdx=0;
+    for(let i=0; i<TOTAL_KEYS; i++) {
+        const n=21+i;
+        const isB=[1,3,6,8,10].includes(n%12);
+        const k = document.createElement('div');
+        k.dataset.note=n;
+        k.className = `key ${isB?'black-key':'white-key'}`;
+        
+        if(!isB) {
+            k.style.width=`${kw}px`;
+            k.style.left=`${wIdx*kw}px`;
+            wIdx++;
+        } else {
+            k.style.width=`${kw*0.6}px`;
+            k.style.left=`${(wIdx*kw)-(kw*0.3)}px`;
+        }
+        
+        k.onmousedown = () => triggerAttack(n);
+        k.onmouseup = k.onmouseleave = () => killVoice(n);
+        el.appendChild(k);
+    }
+}
+
+function centerKeyboard() {
+    document.getElementById('keyboard-container').scrollLeft = (24*42)-200;
+}
+
+function highlightKey(n, on) {
+    const k = document.querySelector(`.key[data-note="${n}"]`);
+    if(k) on ? k.classList.add('active') : k.classList.remove('active');
+}
+
+document.onkeydown = e => {
+    if(!e.repeat && keyMap[e.key.toLowerCase()]!==undefined) 
+        triggerAttack(BASE_NOTE+keyMap[e.key.toLowerCase()]);
+};
+
+document.onkeyup = e => {
+    if(keyMap[e.key.toLowerCase()]!==undefined) 
+        killVoice(BASE_NOTE+keyMap[e.key.toLowerCase()]);
+};
+</script>
+</body>
+</html>
